@@ -1,0 +1,4 @@
+python setup/download_detection_archives.py mot17
+python setup/download_detection_archives.py mot20
+python setup/download_detection_archives.py wildtrack
+python setup/download_detection_archives.py scout

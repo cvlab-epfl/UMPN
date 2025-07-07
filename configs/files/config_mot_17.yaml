@@ -1,0 +1,19 @@
+---
+  main:
+    --print_frequency: '5000'
+  training:
+    --compute_metric_in_2d:
+    # --generate_visualization:
+    # --export_graph:
+
+  dataset:
+    --train_datasets: 
+      - mot17train
+    --detection_threshold: '-1000'
+    # --temporal_edges_max_speed: '999999999999'
+    --split_proportion: '0.8'
+    
+  model:
+
+
+  loss:

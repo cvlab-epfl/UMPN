@@ -1,0 +1,11 @@
+---
+  main:
+  dataset:
+    --train_datasets:
+      - wildtrack
+    --detection_threshold: "0.7"
+    --split_proportion: '0.9'
+
+  model:
+
+  loss:

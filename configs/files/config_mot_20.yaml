@@ -1,0 +1,17 @@
+---
+  main:
+  training:
+    --compute_metric_in_2d:
+    # --generate_visualization:
+    # --export_graph:
+  dataset:
+    --train_datasets: 
+      - mot20train
+    --detection_threshold: '-1000'
+    # --temporal_edges_max_speed: '999999999999'
+    --split_proportion: '0.9'
+
+  model:
+
+
+  loss:

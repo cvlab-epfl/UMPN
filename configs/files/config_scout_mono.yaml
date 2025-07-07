@@ -1,0 +1,15 @@
+---
+  main:
+      --print_frequency: '5000'
+  training:
+    --compute_metric_in_2d:
+
+  dataset:
+    --train_datasets:
+      - scoutmonoval
+    --detection_threshold: "0.5"
+    --split_proportion: '0.5'
+
+  model:
+
+  loss:

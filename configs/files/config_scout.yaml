@@ -1,0 +1,14 @@
+---
+  main:
+    --print_frequency: '200'
+  training:
+
+  dataset:
+    --train_datasets:
+      - scouttrain
+    --detection_threshold: "0.5"
+    --split_proportion: '0.5'
+
+  model:
+
+  loss:
