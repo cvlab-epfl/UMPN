@@ -6,8 +6,8 @@ conf_path = {
 }
 
 data_path = {
-    'wildtrack_root': Path('./data/wildtrack/'), #Path('/cvlabscratch/cvlab/home/engilber/datasets/Wildtrack_dataset/'),
-    'scout_root': Path('./data/scout/'), #Path('/cvlabscratch/cvlab/home/engilber/dev/umpn_code_release/data/scout/'),
+    'wildtrack_root': Path('/cvlabscratch/cvlab/home/engilber/datasets/Wildtrack_dataset/'), # Path('./data/wildtrack/'),
+    'scout_root': Path('./data/scout/'), # Updated to new dataset location
     'MOT17_root': Path('./data/MOT17/'), #Path('/cvlabscratch/cvlab/home/engilber/datasets/MOT17/'),
     'MOT20_root': Path('./data/MOT20/'), #Path('/cvlabscratch/cvlab/home/engilber/datasets/MOT20/'),
 }

@@ -1090,7 +1090,7 @@ class HeteroGraph:
         log.info(f"Loaded gt_dict from {json_path}")
 
 
-    def get_tracking_metrics(self, use_archived=True, use_engin_greedy=False, dset_name=None, sequence=None, mot_metric_evaluator=None):
+    def get_tracking_metrics(self, use_archived=True, use_engin_greedy=False, dset_name=None, sequence=None, mot_metric_evaluator=None, metric_threshold=100):
         data = self.archived_data if use_archived else self.data
         
         if use_engin_greedy:
@@ -1119,7 +1119,7 @@ class HeteroGraph:
             gt_data, pred_data = mot_metric_evaluator.save_sequence_data(data, pred_ids, self.gt_dict, dset_name, sequence)
             return None, gt_data, pred_data
         else:
-            return get_tracking_metrics(data, pred_ids, self.gt_dict)
+            return get_tracking_metrics(data, pred_ids, self.gt_dict, metric_threshold)
 
         
     def compute_graph_cost(self, use_archived=True, type="pred", min_prob=1e-15):

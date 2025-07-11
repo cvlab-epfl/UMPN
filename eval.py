@@ -113,7 +113,7 @@ def val(val_loaders, model, criterion, epoch, conf):
             dset_name = val_loader.dataset.dataset.scene_set.dset_name
             sequence = val_loader.dataset.dataset.scene_set.sequence
 
-            tracking_metrics, gt_trajectories, pred_trajectories = graph.get_tracking_metrics(use_archived=True, dset_name=dset_name, sequence=sequence, mot_metric_evaluator=mot_metric_evaluator)
+            tracking_metrics, gt_trajectories, pred_trajectories = graph.get_tracking_metrics(use_archived=True, dset_name=dset_name, sequence=sequence, mot_metric_evaluator=mot_metric_evaluator, metric_threshold=conf["data_conf"]["metric_threshold"])
 
             if False:
                 graph_cost = graph.compute_graph_cost(use_archived=True, type="pred")

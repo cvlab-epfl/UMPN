@@ -67,16 +67,17 @@ class MOTMetricEvaluator:
 
         timestamp_to_skip = []
         frame_id = 1
+
         for timestamp in timestamps:
             # Convert timestamp to 0-based index
             # frame_id = int(timestamp - min_timestamp)
-            
+
             skip_timestamp = False
             for view_id, view_data in gt_dict[timestamp].items():
                 if len(view_data['bbox']) == 0:
                     # Add empty gt detection with confiddence 0 to validate the itmestamp
-                    # track_as_list_gt.append((frame_id, -1, 0, 0, 0, 0, 0, 0, 0))
-                    # skip_timestamp = True
+                    # track_as_list_gt.append((frame_id, 999999999999, 0, 0, 0, 0, 0, 0, 0))
+                    skip_timestamp = True
                     continue
                 
                 for bbox, person_id, world_point in zip(view_data['bbox'], view_data['person_id'], view_data['world_points']):
@@ -92,6 +93,7 @@ class MOTMetricEvaluator:
                     gt_timestamps.append(torch.tensor(timestamp))
             
             if skip_timestamp:
+                # frame_id += 1
                 continue
             
             # Prediction data

@@ -94,7 +94,7 @@ def extract_tracjectory_with_tracker(graph, tracker_type='bytetrack'):
                 return iou
                 
             ious = box_iou(track_bbox, bboxes)
-            bbox_matches = ious > 0.9
+            bbox_matches = ious > 0.95
             time_matches = timestamps == timestamp
             matches = bbox_matches & time_matches
             multi_match = 0

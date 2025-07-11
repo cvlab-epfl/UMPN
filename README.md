@@ -3,7 +3,7 @@
 ![Model Architecture](docs/model_updated.png)
 
 
-📄 [Paper](https://arxiv.org/abs/your-paper-id) | 🏟️ [Scout Dataset](https://scout.epfl.ch/) | 🛠️ [Scout Dataset Toolkit](https://github.com/cvlab-epfl/scout-toolkit)
+📄 [Paper](https://arxiv.org/abs/your-paper-id) | 🏟️ [Scout Dataset](https://scout.epfl.ch/) | 🛠️ [Scout Dataset Toolkit](https://github.com/cvlab-epfl/scout_toolkit)
 
 
 This repository contains the implementation of a unified people tracking system using Graph Neural Networks (GNNs). The system performs multi-object tracking across multiple camera views using heterogeneous graphs with detection nodes and temporal, view, and social edges.
@@ -24,21 +24,11 @@ First, install the basic requirements:
 pip install -r setup/requirements.txt
 ```
 
-**For running detectors**: If you want to run the detectors, you need to install extended requirements:
+We also provide a complete environment file for the project:
 
 ```bash
-pip install -r setup/extended_requirements.txt
+conda env create -f environment.yml
 ```
-
-**Note**: mmcv might conflict with torch scatter library. If you encounter issues, temporarily comment out the import in `model/factory.py` while the detectors are running.
-
-**Download pretrained detectors** (required for running detectors):
-
-```bash
-bash setup/download_pretrained_detectors.sh
-```
-
-**Alternative**: Download precomputed detections instead (see Dataset section below).
 
 ## Dataset
 
@@ -78,44 +68,65 @@ python setup/download_detection_archives.py scout
 
 For more details about detection management, see [setup/README_detections.md](setup/README_detections.md).
 
+<details>
+<summary>Running detectors yourself (not recommended)</summary>
+
+### Running detectors (not recommended)
+
+If you prefer to run the detectors yourself instead of using the precomputed detections, follow these steps:
+
+1. **Install extended requirements**:
+
+   ```bash
+   pip install -r setup/extended_requirements.txt
+   ```
+
+2. **Note**:  
+   `mmcv` might conflict with the `torch scatter` library. If you encounter issues, temporarily comment out the import in `model/factory.py` while the detectors are running.
+
+3. **Download pretrained detectors** (required for running detectors):
+
+   ```bash
+   bash setup/download_pretrained_detectors.sh
+   ```
+
+   Those detectors are coming from the mmdetection repository. More information about the detectors can be found [here](https://github.com/open-mmlab/mmdetection).
+
+</details>
+
+
 ## Training
 
 ### Basic Training Commands
 
 **Wildtrack**:
 ```bash
-python train.py -cfg configs/files/config_wildtrack.yaml -ftr bbox,true,512 world_points,true,64 timestamp,true,64 view_id,true,64 -n train_wildtrack
+python train.py -cfg configs/files/config_wildtrack.yaml -ftr bbox,true,512 world_points,true,64 timestamp,true,64 view_id,true,64 -ov 5 -udv -dt mvaug_ground -fmgt -ws 10 -tmd 4 -vemd 50.0 -tms 150.0 -der 0.1 -n train_wildtrack
 ```
 
 **MOT17**:
 ```bash
-python train_amp.py -cfg configs/files/config_mot_17.yaml -ftr bbox,true,512 confidence,true,64 timestamp,true,64 -n train_mot17
+python train_amp.py -cfg configs/files/config_mot_17.yaml -ftr bbox,true,512 confidence,true,64 timestamp,true,64 -ov 40 -aug -udt -udv -dt yolox_ghost -dth 0.05 -fmgt -ws 12 -tmd 9 -tms 50.0 -tets bbox -der 0.1 -mnfr 0.05 -n train_mot17
 ```
 
 **MOT20**:
 ```bash
-python train_amp.py -cfg configs/files/config_mot_20.yaml -ftr bbox,true,200 confidence,true,50 timestamp,true,50 -n train_mot20
+python train_amp.py -cfg configs/files/config_mot_20.yaml -cfg configs/files/config_mot_20.yaml  -ftr bbox,true,200 confidence,true,50 timestamp,true,50 -cs 20 -ov 20 -aug -udt -udv -dt yolox_ghost -dth 0.05 -fmgt -ws 10 -tmd 4 -tms 50.0 -tets bbox -der 0.1 -mnfr 0.05 -n train_mot20
 ```
 
 **Scout Mono**:
 ```bash
-python train_amp.py -cfg configs/files/config_scout_mono.yaml -ftr bbox,true,512 confidence,true,64 timestamp,true,64 -n train_scout_mono
+python train_amp.py -cfg configs/files/config_scout_mono.yaml -cfg configs/files/config_scout_mono.yaml  -ftr bbox,true,512 confidence,true,64 timestamp,true,64 -ov 5 -aug -udt -udv -dt yolox -dth 0.05 -fmgt -ws 10 -tmd 4 -tms 50.0 -tets bbox -der 0.1 -mnfr 0.05 -n train_scout_mono
 ```
 
 **Scout Multi-View**:
 ```bash
-python train_amp.py -cfg configs/files/config_scout.yaml -ftr bbox,true,128 world_points,true,32 timestamp,true,32 view_id,true,32  -n train_scout_multi_view
+python train_amp.py -cfg configs/files/config_scout.yaml -cfg configs/files/config_scout.yaml  -ftr bbox,true,128 world_points,true,32 timestamp,true,32 view_id,true,32 -ov 5 -aug -udt -udv -dt yolox -dth 0.05 -fmgt -ws 10 -tmd 4 -vemd 50.0 -tms 150.0 -der 0.1  -n train_scout_multi_view
 ```
-
-python train_amp.py -cfg configs/files/config_scout.yaml -tdset scoutval -ftr bbox,true,128 world_points,true,32 timestamp,true,32 view_id,true,32 -ov 5 -udv -dt yolox -f
-mgt -ws 5 -tmd 4 -vemd 50.0 -tms 150.0 -der 0.1 -n train_scout
-
-python train_amp.py -cfg configs/files/config_scout.yaml -tdset scoutval -ftr bbox,true,128 world_points,true,32 timestamp,true,32 view_id,true,32 -ov 5 -udv -dt yolox -f
-mgt -ws 5 -tmd 4 -vemd 50.0 -tms 150.0 -der 0.1 -n train_scout
 
 **Scout Multi-View with Scene Prior**:
 ```bash
-python train_amp.py -cfg configs/files/config_scout.yaml -ftr bbox,true,128 world_points,true,32 timestamp,true,32 view_id,true,32 -ucn -cef occlusions,False,3 zeros,False,1 -n train_scout_multi_view_scene_prior
+python train_amp.py -cfg configs/files/config_scout.yaml -cfg configs/files/config_scout.yaml  -ftr bbox,true,128 world_points,true,32 timestamp,true,32 view_id,true,32 -ov 5 -aug -udt -udv -dt yolox -dth 0.05 -fmgt -ws 10 -tmd 4 -vemd 50.0 -tms 150.0 -der 0.1 -ucn -cef occlusions,False,3 zeros,False,1 -n train_scout_multi_view_scene_prior
 ```
 
 ### Training Scripts
@@ -161,25 +172,25 @@ python eval.py -ckp ./weights/best_wildtrack.pth.tar -cfg configs/files/config_w
 ### MOT17:
 
 ```
-python eval_amp.py -cfg configs/files/config_mot_17.yaml -ckp ./weights/best_mot17.pth.tar -ftr bbox,true,512 confidence,true,64 timestamp,true,64 -ov 40 -aug -udt -udv -dt yolox_ghost -dth 0.05 -fmgt -ws 12 -tmd 9 -tms 50.0 -tets bbox -der 0.1 -mnfr 0.05 -n eval_mot17
+python eval_amp.py -ckp ./weights/best_mot17.pth.tar -cfg configs/files/config_mot_17.yaml -ftr bbox,true,512 confidence,true,64 timestamp,true,64 -ov 40 -aug -udt -udv -dt yolox_ghost -dth 0.05 -fmgt -ws 12 -tmd 9 -tms 50.0 -tets bbox -der 0.1 -mnfr 0.05 -n eval_mot17
 ```
 
 ### MOT20:
 
 ```
-python eval_amp.py -cfg configs/files/config_mot_20.yaml -ckp ./weights/best_mot20.pth.tar -ftr bbox,true,200 confidence,true,50 timestamp,true,50 -cs 20 -ov 20 -aug -udt -udv -dt yolox_ghost -dth 0.05 -fmgt -ws 10 -tmd 4 -tms 50.0 -tets bbox -der 0.1 -mnfr 0.05 -n eval_mot20
+python eval_amp.py -ckp ./weights/best_mot20.pth.tar -cfg configs/files/config_mot_20.yaml  -ftr bbox,true,200 confidence,true,50 timestamp,true,50 -cs 20 -ov 20 -aug -udt -udv -dt yolox_ghost -dth 0.05 -fmgt -ws 10 -tmd 4 -tms 50.0 -tets bbox -der 0.1 -mnfr 0.05 -n eval_mot20
 ```
 
 ### Scout Mono:
 
 ```
-python eval_amp.py -cfg configs/files/config_scout_mono.yaml -ckp ./weights/best_scout_mono.pth.tar -ftr bbox,true,512 confidence,true,64 timestamp,true,64 -ov 5 -udv -dt mvaug_ground -fmgt -ws 10 -tmd 4 -vemd 50.0 -tms 150.0 -der 0.1 -n eval_scout_mono
+python eval_amp.py -ckp ./weights/best_scout_mono.pth.tar -cfg configs/files/config_scout_mono.yaml  -ftr bbox,true,512 confidence,true,64 timestamp,true,64 -ov 5 -aug -udt -udv -dt yolox -dth 0.05 -fmgt -ws 10 -tmd 4 -tms 50.0 -tets bbox -der 0.1 -mnfr 0.05 -n eval_scout_mono
 ```
 
 ### Scout Multi-View:
 
 ```
-python eval_amp.py -cfg configs/files/config_scout.yaml -ckp ./weights/best_scout_multi_view.pth.tar -ftr bbox,true,128 world_points,true,32 timestamp,true,32 view_id,true,32 -ov 5 -udv -dt mvaug_ground -fmgt -ws 10 -tmd 4 -vemd 50.0 -tms 150.0 -der 0.1 -n eval_scout_multi_view
+python eval_amp.py -ckp ./weights/best_scout_multi_view.pth.tar -cfg configs/files/config_scout.yaml  -ftr bbox,true,128 world_points,true,32 timestamp,true,32 view_id,true,32 -ov 5 -aug -udt -udv -dt yolox -dth 0.05 -fmgt -ws 10 -tmd 4 -vemd 50.0 -tms 150.0 -der 0.1 -n eval_scout_multi_view
 ```
 
 ### Oracle Evaluation
@@ -188,10 +199,10 @@ Run baseline evaluations with oracle information:
 
 ```bash
 # Oracle with ground truth edges
-python eval.py -cfg configs/files/config_wildtrack.yaml -uo -ort graph_edges -n oracle_eval
+python train.py ...other arguments... -uo -ort graph_edges -n oracle_eval
 
 # Oracle with ByteTrack
-python eval.py -cfg configs/files/config_wildtrack.yaml -uo -ort bytetrack -n oracle_bytetrack
+python train.py ...other arguments... -uo -ort bytetrack -n oracle_bytetrack
 ```
 
 ### Key Evaluation Arguments
@@ -211,13 +222,12 @@ python eval.py -cfg configs/files/config_wildtrack.yaml -uo -ort bytetrack -n or
 If you use this code in your research, please cite our paper:
 
 ```bibtex
-@article{unified_people_tracking_gnn,
-  title={Unified People Tracking with Graph Neural Networks},
-  author={[Author Names]},
-  journal={[Journal/Conference]},
-  year={[Year]},
-  volume={[Volume]},
-  pages={[Pages]}
+@article{engilberge25scout,
+  title = {Unified People Tracking with Graph Neural Networks},
+  author = {Martin Engilberge and Ivan Vrkic and Friedrich Wilke Grosche 
+            and Julien Pilet and Engin Turetken and Pascal Fua},
+  journal = {Arxiv},
+  year = {2025}
 }
 ```
 

@@ -5,9 +5,10 @@
 
   dataset:
     --train_datasets:
-      - scouttrain
+      - scoutval
     --detection_threshold: "0.5"
     --split_proportion: '0.9'
+    --metric_threshold: '1'
 
   model:
 

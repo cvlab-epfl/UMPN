@@ -38,12 +38,12 @@ class ScoutSet(SceneBaseSet):
         elif cam_name is not None:
             self.cam_name = cam_name
         else:
-            self.cam_name = [int(folder.name.replace("cam","")) for folder in self.frame_dir_path.iterdir() if folder.is_dir() and folder.name.startswith("cam")]
+            self.cam_name = [int(folder.name.replace("cam_","")) for folder in self.frame_dir_path.iterdir() if folder.is_dir() and folder.name.startswith("cam_")]
 
 
         self.gt_features_norm_path = self.root_path / "annotations_features_norm.json"
 
-        self.nb_frames = len([frame_path for frame_path in (self.frame_dir_path / "cam0").iterdir() if frame_path.suffix == ".jpg"])
+        self.nb_frames = len([frame_path for frame_path in (self.frame_dir_path / "cam_0").iterdir() if frame_path.suffix == ".jpg"])
         self.calibs = load_calibrations(self.calib_dir_path, single_cam)
 
         mesh_path = data_path['scout_root'] / "meshes" / "mesh_ground_only.ply"
@@ -72,7 +72,7 @@ class ScoutSet(SceneBaseSet):
             The frame is return at the original resolution
             """
 
-            frame_path = self.frame_dir_path / f"cam{view_id}/image_{index}.jpg"
+            frame_path = self.frame_dir_path / f"cam_{view_id}/image_{index}.jpg"
 
             # log.debug(f"pomelo dataset get frame {index} {view_id}")
             frame = get_frame_from_file(frame_path)
@@ -80,7 +80,7 @@ class ScoutSet(SceneBaseSet):
             return frame
 
     def _get_gt(self, index, view_id):
-        gt_file_path = self.gt_dir_path / f"cam{view_id}" / f"image_{index}.txt"
+        gt_file_path = self.gt_dir_path / f"cam_{view_id}" / f"image_{index}.txt"
 
         annotations = _load_gt_from_file(gt_file_path, index, view_id)
 
@@ -240,11 +240,11 @@ def load_calib(calib_file_path):
 # Calibration = namedtuple('Calibration', ['K', 'R', 'T', 'dist', 'view_id'])
 def load_calibrations(calib_dir_path, single_cam=None):
     
-    calib_file_pattern = "cam*.json" if single_cam is None else f"cam{single_cam}.json"
+    calib_file_pattern = "cam_*.json" if single_cam is None else f"cam_{single_cam}.json"
     calibs = {}
     for calib_file in calib_dir_path.glob(calib_file_pattern):
-        # Extract camera number from filename (e.g. "cvlabrpi10_0.json" -> 10)
-        cam_num = int(calib_file.stem.split("cam")[1].split("_")[0])
+        # Extract camera number from filename (e.g. "cam_10.json" -> 10)
+        cam_num = int(calib_file.stem.replace("cam_", ""))
         
         # Load calibration for this camera
         calib = load_calib(calib_file)

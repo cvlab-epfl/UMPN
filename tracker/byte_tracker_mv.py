@@ -236,7 +236,7 @@ class ByteTrackerMV(BaseTracker):
             col = np.zeros(len(det_bboxes)).astype(np.int32) - 1
         return row, col
 
-    def merge_multiview_bboxes(self, bboxes, world_points, view_ids, labels, scores, dist_thresh=0.8, bbox_radius=1.5):
+    def merge_multiview_bboxes(self, bboxes, world_points, view_ids, labels, scores, dist_thresh=0.80, bbox_radius=1.5):
         """
         Merge multiview bboxes based on world point coordinates if the distance
         between any pair of points from different views is less than dist_thresh.
@@ -345,7 +345,7 @@ class ByteTrackerMV(BaseTracker):
 
         return merged_bboxes, merged_labels, merged_scores, mapping_groundbbox_to_bboxes
 
-    def map_ground_bbox_to_bboxes(self, bboxes, labels, scores, ids, mapping_groundbbox_to_bboxes):
+    def map_ground_bbox_to_bboxes(self, bboxes, labels, scores, ids, cid_clusters, mapping_groundbbox_to_bboxes):
         """
         Map the merged "ground" bboxes back to the original bboxes. For each merged
         bbox, replicate its label, score, and assigned ID to all original bounding
@@ -365,6 +365,7 @@ class ByteTrackerMV(BaseTracker):
             out_scores (Tensor): Expanded scores of shape (N, ).
             out_ids (Tensor): Expanded ids of shape (N, ).
         """
+
         device = bboxes.device
         out_bboxes = []
         out_labels = []
@@ -373,18 +374,38 @@ class ByteTrackerMV(BaseTracker):
 
         # Each key in the dictionary corresponds to one merged (ground) bbox index.
         # Replicate that ground bbox's label, score, and id to each original bbox.
-        for c_idx, cluster_info in mapping_groundbbox_to_bboxes.items():
-            cluster_original_bboxes = cluster_info["orig_bboxes"]  # shape [k, 4]
-            label_val = labels[c_idx]    # shape []
-            score_val = scores[c_idx]
-            id_val = ids[c_idx]
 
-            # For each original bbox in the cluster, assign the same label, score, id
-            for i in range(cluster_original_bboxes.size(0)):
-                out_bboxes.append(cluster_original_bboxes[i])
+        for i, c_idx in enumerate(cid_clusters):
+            cluster_info = mapping_groundbbox_to_bboxes[c_idx.item()]
+            cluster_original_bboxes = cluster_info["orig_bboxes"]  # shape [k, 4]
+            label_val = labels[i]    # shape []
+            score_val = scores[i]
+            id_val = ids[i]
+
+            for j in range(cluster_original_bboxes.size(0)):
+                out_bboxes.append(cluster_original_bboxes[j])
                 out_labels.append(label_val)
                 out_scores.append(score_val)
                 out_ids.append(id_val)
+
+        # for c_idx, cluster_info in mapping_groundbbox_to_bboxes.items():
+        #     # Find where cid_clusters == c_idx, if it doesn't exist continue
+        #     matches = (cid_clusters == c_idx).nonzero(as_tuple=True)[0]
+        #     if len(matches) == 0:
+        #         continue
+        #     real_c_idx = matches[0]
+            
+        #     cluster_original_bboxes = cluster_info["orig_bboxes"]  # shape [k, 4]
+        #     label_val = labels[real_c_idx]    # shape []
+        #     score_val = scores[real_c_idx]
+        #     id_val = ids[real_c_idx]
+
+        #     # For each original bbox in the cluster, assign the same label, score, id
+        #     for i in range(cluster_original_bboxes.size(0)):
+        #         out_bboxes.append(cluster_original_bboxes[i])
+        #         out_labels.append(label_val)
+        #         out_scores.append(score_val)
+        #         out_ids.append(id_val)
 
         out_bboxes = torch.stack(out_bboxes, dim=0).to(device)
         out_labels = torch.stack(out_labels, dim=0).to(device)
@@ -417,7 +438,9 @@ class ByteTrackerMV(BaseTracker):
 
         # Merge multiview world points to create bboxes
         bboxes, labels, scores, mapping_groundbbox_to_bboxes = self.merge_multiview_bboxes(
-            bboxes, world_points, view_ids, labels, scores, dist_thresh=0.8, bbox_radius=2.5)
+            bboxes, world_points, view_ids, labels, scores, dist_thresh=2, bbox_radius=1.5)
+
+        cid_clusters = torch.tensor(list(range(len(bboxes))))
 
         if frame_id == 0:
             self.reset()
@@ -429,6 +452,7 @@ class ByteTrackerMV(BaseTracker):
             scores = scores[valid_inds]
             bboxes = bboxes[valid_inds]
             labels = labels[valid_inds]
+            cid_clusters = cid_clusters[valid_inds]
             num_new_tracks = bboxes.size(0)
             ids = torch.arange(self.num_tracks,
                                self.num_tracks + num_new_tracks).to(labels)
@@ -445,6 +469,7 @@ class ByteTrackerMV(BaseTracker):
             first_det_labels = labels[first_det_inds]
             first_det_scores = scores[first_det_inds]
             first_det_ids = ids[first_det_inds]
+            first_det_cids = cid_clusters[first_det_inds]
             first_det_motion = motion_vec[first_det_inds] if self.use_motion else None
 
             second_det_inds = (~first_det_inds) & (
@@ -452,6 +477,7 @@ class ByteTrackerMV(BaseTracker):
             second_det_bboxes = bboxes[second_det_inds]
             second_det_labels = labels[second_det_inds]
             second_det_scores = scores[second_det_inds]
+            second_det_cids = cid_clusters[second_det_inds]
             second_det_ids = ids[second_det_inds]
             second_det_motion = motion_vec[second_det_inds] if self.use_motion else None
 
@@ -475,12 +501,14 @@ class ByteTrackerMV(BaseTracker):
             first_match_det_labels = first_det_labels[valid]
             first_match_det_scores = first_det_scores[valid]
             first_match_det_ids = first_det_ids[valid]
+            first_match_det_cids = first_det_cids[valid]
             assert (first_match_det_ids > -1).all()
 
             first_unmatch_det_bboxes = first_det_bboxes[~valid]
             first_unmatch_det_labels = first_det_labels[~valid]
             first_unmatch_det_scores = first_det_scores[~valid]
             first_unmatch_det_ids = first_det_ids[~valid]
+            first_unmatch_det_cids = first_det_cids[~valid]
             first_unmatch_det_motion = first_det_motion[~valid] if self.use_motion else None
             assert (first_unmatch_det_ids == -1).all()
 
@@ -527,6 +555,9 @@ class ByteTrackerMV(BaseTracker):
                             dim=0)
             ids = torch.cat((ids, second_det_ids[valid]), dim=0)
 
+            cid_clusters = torch.cat((first_match_det_cids, first_unmatch_det_cids), dim=0)
+            cid_clusters = torch.cat((cid_clusters, second_det_cids[valid]), dim=0)
+
             new_track_inds = ids == -1
             ids[new_track_inds] = torch.arange(
                 self.num_tracks,
@@ -543,7 +574,7 @@ class ByteTrackerMV(BaseTracker):
         pred_track_instances = {}
         # Map the ground bboxes back to original bboxes, duplicating track info
         bboxes, labels, scores, ids = self.map_ground_bbox_to_bboxes(
-            bboxes, labels, scores, ids, mapping_groundbbox_to_bboxes)
+            bboxes, labels, scores, ids, cid_clusters, mapping_groundbbox_to_bboxes)
         pred_track_instances["bboxes"] = bboxes
         pred_track_instances["labels"] = labels
         pred_track_instances["scores"] = scores

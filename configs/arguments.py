@@ -131,6 +131,9 @@ parser_data.add_argument("-rt", "--reid_type", dest="reid_type", type=str, defau
 parser_data.add_argument("-crs", "--crops_size", dest="crops_size", type=int, nargs='+', default=[256, 80],
                         help="Target size for cropped image patches [height, width]. Used for re-identification and appearance features.")
 
+parser_data.add_argument("-mth", "--metric_threshold", dest="metric_threshold", type=float, default=100,
+                        help="Metric threshold for tracking metrics. Used for computing tracking metrics. Default is 100 cm for wildtrack. Scout uses meters as based unit so should be set to 1.")
+
 # Detection Configuration
 parser_data.add_argument("-udt", "--use_detection_training", dest="use_detection_training", action="store_true", default=False,
                         help="Use automatic detections instead of ground truth bounding boxes during training. Enables end-to-end evaluation.")

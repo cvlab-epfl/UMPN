@@ -26,24 +26,24 @@ def get_scene_set(dataset_names, data_conf, training):
 
     if "scouttrain" in dataset_names:
         log.debug("Adding SCOUT train sequences to the dataset")
-        sceneset_list.append(scout.ScoutSet(data_conf, training, "sequence_1", cam_name=[0, 2, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]))
-        sceneset_list.append(scout.ScoutSet(data_conf, training, "sequence_2", cam_name=[8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]))
+        sceneset_list.append(scout.ScoutSet(data_conf, training, "sequence_2", cam_name=[0, 2, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]))
+        sceneset_list.append(scout.ScoutSet(data_conf, training, "sequence_1", cam_name=[8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]))
 
     if "scoutval" in dataset_names:
         log.debug("Adding SCOUT validation sequences to the dataset")
-        sceneset_list.append(scout.ScoutSet(data_conf, training, "sequence_2", cam_name=[0, 1, 2, 3, 4, 5, 6, 7]))
+        sceneset_list.append(scout.ScoutSet(data_conf, training, "sequence_1", cam_name=[0, 1, 2, 3, 4, 5, 6, 7]))
 
     if "scoutmonotrain" in dataset_names:
         log.debug("Adding SCOUT mono train sequences to the dataset")
         for cam_name in [0, 2, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]:
-            sceneset_list.append(scout.ScoutSet(data_conf, training, "sequence_1", single_cam=cam_name))
-        for cam_name in [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]:
             sceneset_list.append(scout.ScoutSet(data_conf, training, "sequence_2", single_cam=cam_name))
+        for cam_name in [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]:
+            sceneset_list.append(scout.ScoutSet(data_conf, training, "sequence_1", single_cam=cam_name))
 
     if "scoutmonoval" in dataset_names:
         log.debug("Adding SCOUT mono validation sequences to the dataset")
         for cam_name in [0, 1, 2, 3, 4, 5, 6, 7]:
-            sceneset_list.append(scout.ScoutSet(data_conf, training, "sequence_2", single_cam=cam_name))
+            sceneset_list.append(scout.ScoutSet(data_conf, training, "sequence_1", single_cam=cam_name))
     
     #MOT20 Train
     if "mot20train" in dataset_names:

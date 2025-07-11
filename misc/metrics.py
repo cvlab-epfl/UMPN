@@ -1,116 +1,47 @@
 import torch
 import numpy as np
 import motmetrics as mm
+import pandas as pd
 
 from ipdb import set_trace
 
 from misc.log_utils import log
 
-def create_mot_accumulator(bbox_pred, bbox_gt, y_out, y_gt):
-    """
-    This is a function returns an accumulator with tracking predictions and GT stored in it
+def make_dataframe_from_det(det_list, track_id_list):
+    det_as_list = list()
+    for frame_id, (frame_det, frame_track_ids) in enumerate(zip(det_list, track_id_list)):
+        det_as_list.extend([{'FrameId':frame_id, 'Id':int(track_id), 'X':int(det[0]), 'Y':int(det[1])} 
+                           for det, track_id in zip(frame_det, frame_track_ids)])
 
-    bbox_pred [NUM_DETS_PRED, (cat_id, alpha, x1, y1, x2, y2, h, w, l, x, y, z, rotation_y, score)]: Predicted bboxes in a sequence
-    bbox_gt [NUM_DETS_GT, (cat_id, alpha, x1, y1, x2, y2, h, w, l, x, y, z, rotation_y, score)]: GT bboxes in a sequence
-    y_out [NUM_DETS_PRED, (frame, track_id)]: Predicted tracks where each row is [ts, track_id]
-    y_gt [NUM_DETS_PRED, (frame, track_id)]: GT tracks where each row is [ts, track_id]
+    det_as_df = pd.DataFrame(det_as_list)
 
-    Returns:
-    A MOT accumulator object
-    """
-    times_out = np.sort(y_out[:, 0])
-    times_gt = np.sort(y_gt[:, 0])
-    t_st = min(times_gt[0], times_out[0])
-    t_ed = max(times_gt[-1], times_out[-1])
+    if  det_as_df.empty:
+        det_as_df = pd.DataFrame(columns =['FrameId','Id','X','Y'])
 
-    # initialize and load tracking results into MOT accumulator
-    acc = mm.MOTAccumulator()
+    det_as_df = det_as_df.set_index(['FrameId', 'Id'])
 
-    for t in range(t_st, t_ed + 1):
-        oids = np.where(np.logical_and(y_gt[:, 0] == t, y_gt[:, 1] >= 0))[0]
-        otracks = y_gt[oids, 1]
-        otracks = otracks.astype("float32")
-
-        hids = np.where(np.logical_and(y_out[:, 0] == t, y_out[:, 1] >= 0))[0]
-        htracks = y_out[hids, 1]
-        htracks = htracks.astype("float32")
-
-        bboxo = bbox_gt[oids, 2:6]
-        bboxo[:, 2:] = bboxo[:, 2:] - bboxo[:, :2]
-        bboxh = bbox_pred[hids, 2:6]
-        bboxh[:, 2:] = bboxh[:, 2:] - bboxh[:, :2]
-        dists = mm.distances.iou_matrix(bboxo, bboxh, max_iou=0.5)
-
-        acc.update(otracks, htracks, dists, frameid=t)
-
-    return acc
-
-def create_mot_accumulator_gp(bbox_pred, bbox_gt, y_out, y_gt):
-    """
-    This is a function returns an accumulator with tracking predictions and GT stored in it
-
-    bbox_pred [NUM_DETS_PRED, (cat_id, alpha, x1, y1, x2, y2, h, w, l, x, y, z, rotation_y, score)]: Predicted bboxes in a sequence
-    bbox_gt [NUM_DETS_GT, (cat_id, alpha, x1, y1, x2, y2, h, w, l, x, y, z, rotation_y, score)]: GT bboxes in a sequence
-    y_out [NUM_DETS_PRED, (frame, track_id)]: Predicted tracks where each row is [ts, track_id]
-    y_gt [NUM_DETS_PRED, (frame, track_id)]: GT tracks where each row is [ts, track_id]
-
-    Returns:
-    A MOT accumulator object
-    """
-    #set_trace()
-    times_out = np.sort(y_out[:, 0])
-    times_gt = np.sort(y_gt[:, 0])
-    t_st = min(times_gt[0], times_out[0])
-    t_ed = max(times_gt[-1], times_out[-1])
-
-    # # initialize and load tracking results into MOT accumulator
-    # acc = mm.MOTAccumulator()
-
-    # for t in range(t_st, t_ed + 1):
-    #     oids = np.where(np.logical_and(y_gt[:, 0] == t, y_gt[:, 1] >= 0))[0]
-    #     otracks = y_gt[oids, 1]
-    #     otracks = otracks.astype("float32")
-
-    #     hids = np.where(np.logical_and(y_out[:, 0] == t, y_out[:, 1] >= 0))[0]
-    #     htracks = y_out[hids, 1]
-    #     htracks = htracks.astype("float32")
-
-    #     bboxo = bbox_gt[oids, 2:6]
-    #     bboxo[:, 2:] = bboxo[:, 2:] - bboxo[:, :2]
-    #     bboxh = bbox_pred[hids, 2:6]
-    #     bboxh[:, 2:] = bboxh[:, 2:] - bboxh[:, :2]
-    #     dists = mm.distances.iou_matrix(bboxo, bboxh, max_iou=0.5)
-
-    #     acc.update(otracks, htracks, dists, frameid=t)
-
-    print('=========== Wildtrack GROUND PLANE evaluation ===========')
-    metrics = list(mm.metrics.motchallenge_metrics)
-    mh = mm.metrics.create()
-    acc = mm.MOTAccumulator(auto_id=True)
-    #for frame in np.unique(gt[:, 0]).astype(int):
-    for frame in range(t_st, t_ed + 1):
-        
-        track_ids_gt = y_gt[y_gt[:, 0] == frame][:, 1]
-        location_gt = bbox_gt[y_gt[:, 0] == frame][:, 9:11]
-        
-        track_ids_pred = y_out[y_out[:, 0] == frame][:, 1]
-        location_pred = bbox_pred[y_out[:, 0] == frame][:, 9:11]
+    return det_as_df
 
 
-        t_trans = (location_pred / 2.5) + np.array([360, 120])
-        t_trans_gt = (location_gt / 2.5) + np.array([360, 120])
+def compute_mot_metric(gt_df, pred_df, metric_threshold):
 
-        C = mm.distances.norm2squared_matrix(t_trans_gt  * 0.025, t_trans * 0.025, max_d2=1)
-        C = np.sqrt(C)
+    if gt_df.size == 0:
+        print("Trying to compute tracking metric on an empty sequence (gt size is 0)")
+        return None
 
-        acc.update(track_ids_gt.astype('int').tolist(), track_ids_pred.astype('int').tolist(), C)
-
-    summary = mh.compute(acc, metrics=metrics)
-    log.info(f'\n{mm.io.render_summary(summary, formatters=mh.formatters, namemap=mm.io.motchallenge_metric_names)}')
+    acc = mm.utils.compare_to_groundtruth(gt_df, pred_df, 'euc', distfields=['X', 'Y'], distth=metric_threshold)
     
-    return acc
+    #library doesn't implement moda computation, compute it manually form accumulator
+    mh = mm.metrics.create()
+    summary = mh.compute(acc, metrics=mm.metrics.motchallenge_metrics, name='acc')
 
-def get_tracking_metrics(graph_data, pred_ids, gt_dict):
+    # print(summary)  # Uncomment for debugging
+    metrics = dict(zip(summary.keys(), summary.values[0]))
+    
+    return metrics
+
+
+def get_tracking_metrics(graph_data, pred_ids, gt_dict, metric_threshold):
     
     def merge_detections(world_points, track_ids, timestamps):
         unique_ids = torch.unique(track_ids)
@@ -210,15 +141,16 @@ def get_tracking_metrics(graph_data, pred_ids, gt_dict):
         track_ids_pred.cpu().numpy(),
         track_ids_gt.cpu().numpy(),
         timestamps_pred.cpu().numpy(),
-        timestamps_gt.cpu().numpy()
+        timestamps_gt.cpu().numpy(),
+        metric_threshold
     )
     
     return metrics, (world_points_gt, track_ids_gt, timestamps_gt), (world_points_pred, track_ids_pred, timestamps_pred)
 
 
-def compute_mot_metrics_gp(world_points_pred, world_points_gt, track_ids_pred, track_ids_gt, timestamps_pred, timestamps_gt):
+def compute_mot_metrics_gp(world_points_pred, world_points_gt, track_ids_pred, track_ids_gt, timestamps_pred, timestamps_gt, metric_threshold):
     """
-    Compute MOT metrics for ground plane tracking using the same math as above.
+    Compute MOT metrics for ground plane tracking using the new approach.
 
     Args:
     world_points_pred: (NUM_DETS, 3) Predicted world coordinates
@@ -230,55 +162,51 @@ def compute_mot_metrics_gp(world_points_pred, world_points_gt, track_ids_pred, t
 
     Returns:
     dict: MOT metrics including MOTA, MOTP, IDF1, etc.
-    """
-    acc = mm.MOTAccumulator(auto_id=True)
-
-    # Handle empty predictions case
-    if len(world_points_pred) == 0:
-        # Update accumulator with only ground truth for each timestamp
-        for t in np.unique(timestamps_gt):
-            mask_gt = timestamps_gt == t
-            acc.update(
-                track_ids_gt[mask_gt].astype('int').tolist(),
-                [],  # Empty predictions
-                []   # Empty cost matrix
-            )
-    else:
-        if True: # cm unit
-            # Convert world coordinates to image coordinates (same as above)
-            t_trans = (world_points_pred[:, :2] / 2.5) + np.array([360, 120])
-            t_trans_gt = (world_points_gt[:, :2] / 2.5) + np.array([360, 120])
-
-            # Compute distances (same as above)
-            C = mm.distances.norm2squared_matrix(t_trans_gt * 0.025, t_trans * 0.025, max_d2=1) #1  #0.01
-        else: # m unit
-            # Convert world coordinates to image coordinates (same as above)
-            t_trans = (world_points_pred[:, :2]) + np.array([360, 120])
-            t_trans_gt = (world_points_gt[:, :2]) + np.array([360, 120])
-
-            # Compute distances (same as above)
-            C = mm.distances.norm2squared_matrix(t_trans_gt, t_trans, max_d2=1) #1  #0.01
-        C = np.sqrt(C)
-
-        # Update accumulator for each unique timestamp
-        for t in np.unique(np.concatenate([timestamps_pred, timestamps_gt])):
-            mask_pred = timestamps_pred == t
-            mask_gt = timestamps_gt == t
-            acc.update(
-                track_ids_gt[mask_gt].astype('int').tolist(),
-                track_ids_pred[mask_pred].astype('int').tolist(),
-                C[mask_gt][:, mask_pred]
-            )
-
-    # Compute metrics
-    mh = mm.metrics.create()
-    summary = mh.compute(acc, metrics=mm.metrics.motchallenge_metrics, name='acc')
-    summary_dict = summary.to_dict()
-
-    #remove layer in dict since only acc in value dict
-    summary_dict = {k: v["acc"] for k, v in summary_dict.items()}
-
-    return summary_dict
+    """    
+    # Get all unique timestamps
+    all_timestamps = np.unique(np.concatenate([timestamps_pred, timestamps_gt]))
+    
+    # Organize ground truth detections and track IDs by frame
+    gt_det_list = []
+    gt_track_id_list = []
+    for t in all_timestamps:
+        mask_gt = timestamps_gt == t
+        if np.any(mask_gt):
+            # Use world coordinates directly without rescaling
+            gt_world_points_t = world_points_gt[mask_gt]
+            gt_track_ids_t = track_ids_gt[mask_gt]
+            gt_det_list.append(gt_world_points_t[:, :2])
+            gt_track_id_list.append(gt_track_ids_t)
+        else:
+            gt_det_list.append(np.empty((0, 2)))
+            gt_track_id_list.append(np.empty(0, dtype=int))
+    
+    # Organize predicted detections and track IDs by frame
+    pred_det_list = []
+    pred_track_id_list = []
+    for t in all_timestamps:
+        mask_pred = timestamps_pred == t
+        if np.any(mask_pred):
+            # Use world coordinates directly without rescaling
+            pred_world_points_t = world_points_pred[mask_pred]
+            pred_track_ids_t = track_ids_pred[mask_pred]
+            pred_det_list.append(pred_world_points_t[:, :2])
+            pred_track_id_list.append(pred_track_ids_t)
+        else:
+            pred_det_list.append(np.empty((0, 2)))
+            pred_track_id_list.append(np.empty(0, dtype=int))
+    
+    # Convert to DataFrames using helper function
+    gt_df = make_dataframe_from_det(gt_det_list, gt_track_id_list)
+    pred_df = make_dataframe_from_det(pred_det_list, pred_track_id_list)
+    
+    metrics = compute_mot_metric(gt_df, pred_df, metric_threshold)
+    
+    if metrics is None:
+        # Return empty metrics dict if computation failed
+        return {}
+    
+    return metrics
     
     
 def calc_mot_metrics(accs):
