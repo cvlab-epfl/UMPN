@@ -15,6 +15,12 @@ This repository contains the implementation of a unified people tracking system 
 - **Online tracking**: Tracks people in real-time
 - **Graph-based representation**: Flexible graph structure adapts to varying numbers of detections and cameras
 
+## Clone the repository
+
+```bash
+git clone https://github.com/cvlab-epfl/UMPN.git
+cd UMPN
+```
 
 ## Installation
 

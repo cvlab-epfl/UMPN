@@ -1,15 +1,15 @@
 from pathlib import Path
 
 conf_path = {
-    "ROOT_PATH": Path("/cvlabscratch/cvlab/home/engilber/dev/gnn_tracking"),
+    "ROOT_PATH": Path("./"),
     "LOGGING_YAML": Path("./configs/logging.yaml")
 }
 
 data_path = {
-    'wildtrack_root': Path('/cvlabscratch/cvlab/home/engilber/datasets/Wildtrack_dataset/'), # Path('./data/wildtrack/'),
-    'scout_root': Path('./data/scout/'), # Updated to new dataset location
-    'MOT17_root': Path('./data/MOT17/'), #Path('/cvlabscratch/cvlab/home/engilber/datasets/MOT17/'),
-    'MOT20_root': Path('./data/MOT20/'), #Path('/cvlabscratch/cvlab/home/engilber/datasets/MOT20/'),
+    'wildtrack_root': Path('./data/wildtrack/'),
+    'scout_root': Path('./data/scout/'),
+    'MOT17_root': Path('./data/MOT17/'),
+    'MOT20_root': Path('./data/MOT20/'),
 }
 
 model_path = {
