@@ -3,7 +3,7 @@
 ![Model Architecture](docs/model_updated.png)
 
 
-📄 [Paper](https://arxiv.org/abs/your-paper-id) | 🏟️ [Scout Dataset](https://scout.epfl.ch/) | 🛠️ [Scout Dataset Toolkit](https://github.com/cvlab-epfl/scout_toolkit)
+📄 [Paper](https://arxiv.org/abs/2507.08494) | 🏟️ [Scout Dataset](https://scout.epfl.ch/) | 🛠️ [Scout Dataset Toolkit](https://github.com/cvlab-epfl/scout_toolkit)
 
 
 This repository contains the implementation of a unified people tracking system using Graph Neural Networks (GNNs). The system performs multi-object tracking across multiple camera views using heterogeneous graphs with detection nodes and temporal, view, and social edges.
@@ -232,7 +232,7 @@ If you use this code in your research, please cite our paper:
   title = {Unified People Tracking with Graph Neural Networks},
   author = {Martin Engilberge and Ivan Vrkic and Friedrich Wilke Grosche 
             and Julien Pilet and Engin Turetken and Pascal Fua},
-  journal = {Arxiv},
+  journal = {arXiv preprint arXiv:2507.08494},
   year = {2025}
 }
 ```
