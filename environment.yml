@@ -1,0 +1,47 @@
+name: umpn-env
+channels:
+  - pytorch
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.8
+  - cmake
+  - make
+  - build
+  - setuptools
+  - wheel
+  - pip
+  - numpy
+  - opencv
+  - pillow
+  - shapely
+  - tqdm
+  - matplotlib
+  - networkx
+  - pandas
+  - psutil
+  - pyyaml
+  - requests
+  - scipy
+  - scikit-image
+  - sympy
+  - trimesh
+  - pyembree
+  - embree
+  - addict
+  - coloredlogs
+  - filterpy
+  - ipdb
+  - lap
+  - loguru
+  - verboselogs
+  - pytorch::pytorch
+  - pytorch::torchvision
+  - pytorch::torchaudio
+  - pip:
+      - rtmlib
+      - mmdet
+      - motmetrics
+      - torchreid
+      - torch_geometric
+      - https://data.pyg.org/whl/torch-2.4.1+cpu.html
