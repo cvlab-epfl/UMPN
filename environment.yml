@@ -38,10 +38,13 @@ dependencies:
   - pytorch::pytorch
   - pytorch::torchvision
   - pytorch::torchaudio
+  - openmmlab
   - pip:
       - rtmlib
       - mmdet
       - motmetrics
       - torchreid
-      - torch_geometric
-      - https://data.pyg.org/whl/torch-2.4.1+cpu.html
+      - torch-geometric
+      - tensorboard
+      - motmetrics
+      - https://data.pyg.org/whl/torch-2.4.1+cpu.html # modify according to cuda environment

@@ -1,0 +1,7 @@
+data/
+*.pyc
+*.log
+*.npy
+logs/*
+*.pth
+*.tar

@@ -36,6 +36,14 @@ We also provide a complete environment file for the project:
 conda env create -f environment.yml
 ```
 
+then:
+
+```bash
+pip install torch-scatter -f https://data.pyg.org/whl/torch-2.4.1+cpu.html
+pip install --no-deps git+https://github.com/JonathonLuiten/TrackEval.git@12c8791b303e0a0b50f753af204249e622d0281a
+mim install 'mmcv<2.2.0'
+````
+
 ## Dataset
 
 ### Supported Datasets

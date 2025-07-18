@@ -11,6 +11,7 @@ import yaml
 
 import coloredlogs
 import verboselogs
+from pathlib import Path
 from pprint import pformat
 from tqdm import tqdm
 from tqdm.contrib.logging import logging_redirect_tqdm
@@ -90,6 +91,7 @@ def add_log_file_handler(logfile_path):
     Returns:
         logging.FileHandler: The newly created file handler.
     """
+    Path(logfile_path).parent.mkdir(exist_ok=True, parents=True)
     config_dict = get_logging_dict()
     file_handler = logging.FileHandler(logfile_path)
     
