@@ -66,8 +66,19 @@ data_path = {
     'MOT20_root': Path('/path/to/MOT20/'),
 }
 ```
+2. **Download Additionnal Calibration for MOT datasets**: 
 
-2. **Download precomputed detections** (recommended for faster setup):
+Here is the archives for both MOT dataset:
+
+- [MOT17 Calibration Data](https://drive.google.com/file/d/1787nInGtKkDxrSQHnm6cf9JcTuDrwoWY/view?usp=sharing)
+- [MOT20 Calibration Data](https://drive.google.com/file/d/1hVRzgqokRvTgobuSjEZq1p0jS6FlK488/view?usp=sharing)
+
+They should be placed at the root of their respective dataset folder.
+
+Those calibration files are loaded by the dataloader but not used with the default config. They can be used to compute world coordinate when those features are used.
+They are taken from https://github.com/dendorferpatrick/QuoVadis
+
+3. **Download precomputed detections** (recommended for faster setup):
 
 ```bash
 # Download all precomputed detections
