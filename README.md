@@ -1,4 +1,4 @@
-# Unified People Tracking with Graph Neural Networks
+# One Graph to Track Them All: Dynamic GNNs for Single- and Multi-View Tracking
 
 ![Model Architecture](docs/model_updated.png)
 
@@ -248,7 +248,7 @@ If you use this code in your research, please cite our paper:
 
 ```bibtex
 @article{engilberge25scout,
-  title = {Unified People Tracking with Graph Neural Networks},
+  title = {One Graph to Track Them All: Dynamic GNNs for Single- and Multi-View Tracking},
   author = {Martin Engilberge and Ivan Vrkic and Friedrich Wilke Grosche 
             and Julien Pilet and Engin Turetken and Pascal Fua},
   journal = {arXiv preprint arXiv:2507.08494},
